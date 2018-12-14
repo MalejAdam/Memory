@@ -7,6 +7,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,20 +18,26 @@ public class MainActivity extends AppCompatActivity {
 
     static  final int REQUEST_IMAGE_CAPTURE = 1;
     String mCurrentPhotoPath;
+    private DBHelper dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dispatchTakePictureIntent();
-        galleryAddPicture();
+        dbHelper = new DBHelper(this);
+        takePhoto();
     }
 
-    private void dispatchTakePictureIntent(){
+    private void dispatchTakePictureIntent(DBHelper dbHelper){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if(takePictureIntent.resolveActivity(getPackageManager()) != null ){
             File photoFile = null;
             try{
                 photoFile = createImageFile();
+                if(photoFile != null)
+                {
+                    dbHelper.insertMemory(photoFile.getPath());
+                }
             }
             catch (IOException ex){
                 ex.getMessage();
@@ -61,4 +68,13 @@ public class MainActivity extends AppCompatActivity {
         this.sendBroadcast(mediaScanIntent);
     }
 
+    private void takePhoto(){
+        findViewById(R.id.btnTakePhoto).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dispatchTakePictureIntent(dbHelper);
+                galleryAddPicture();
+            }
+        });
+    }
 }
